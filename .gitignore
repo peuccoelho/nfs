@@ -1,3 +1,17 @@
+# Arquivos de configuracao com credenciais
 .env
-.env.example
-downloads
+
+# Downloads de XMLs
+downloads/
+
+# Screenshots de erro
+logs/
+
+# Cache do Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Dependencias locais (instalar via pip)
+.venv/
+venv/

@@ -1,17 +1,30 @@
-# Arquivos de configuracao com credenciais
+# Credenciais (contem usuario e senha)
 .env
 
-# Downloads de XMLs
+# XMLs baixados do portal
 downloads/
+downloads/**/*
+downloads/**/*.xml
+downloads/**/*.zip
 
-# Screenshots de erro
+# Screenshots de erro gerados automaticamente
 logs/
+logs/**/*.png
 
 # Cache do Python
 __pycache__/
 *.pyc
 *.pyo
+*.pyd
+*.pyw
 
-# Dependencias locais (instalar via pip)
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Ambiente virtual
 .venv/
 venv/
+env/

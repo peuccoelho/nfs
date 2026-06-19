@@ -1,4 +1,6 @@
 import asyncio
+import os
+import sys
 from datetime import datetime
 from pathlib import Path
 
@@ -10,6 +12,11 @@ from playwright.async_api import (
     Playwright,
     async_playwright,
 )
+
+# Garante que o Playwright encontre os browsers no local correto
+if getattr(sys, "frozen", False):
+    pasta_browsers = Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData" / "Local")) / "ms-playwright"
+    os.environ["PLAYWRIGHT_BROWSERS_PATH"] = str(pasta_browsers)
 
 from config import Config
 from downloader import processar_download
@@ -320,7 +327,8 @@ class PortalNFSE:
     async def _capturar_screenshot(self, nome: str) -> None:
         """Salva um screenshot da pagina atual para debug."""
         try:
-            pasta_logs = Path(__file__).resolve().parent / "logs"
+            base = Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).resolve().parent
+            pasta_logs = base / "logs"
             pasta_logs.mkdir(exist_ok=True)
             ts = datetime.now().strftime("%Y%m%d_%H%M%S")
             caminho = pasta_logs / f"{nome}_{ts}.png"

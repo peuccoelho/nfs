@@ -1,5 +1,6 @@
 import calendar
 import logging
+import sys
 from datetime import datetime
 from pathlib import Path
 
@@ -36,12 +37,17 @@ def split_date_range(ano: int, mes: int) -> list[tuple[str, str]]:
     ]
 
 
+def _base_dir() -> Path:
+    """Retorna o diretorio base (pai do .exe ou do script)."""
+    return Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).resolve().parent
+
+
 def criar_diretorio_downloads(ano: int, mes: int) -> Path:
     """Cria e retorna o caminho do diretorio de downloads para o mes/ano.
 
     Exemplo: downloads/2026-05/
     """
-    diretorio: Path = Path(__file__).resolve().parent / "downloads" / f"{ano}-{mes:02d}"
+    diretorio: Path = _base_dir() / "downloads" / f"{ano}-{mes:02d}"
     diretorio.mkdir(parents=True, exist_ok=True)
     return diretorio
 

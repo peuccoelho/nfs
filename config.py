@@ -1,5 +1,6 @@
 import argparse
 import os
+import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -10,7 +11,9 @@ class Config:
 
     def __init__(self) -> None:
         # Carrega variaveis do arquivo .env
-        env_path: Path = Path(__file__).resolve().parent / ".env"
+        # Quando .exe, o .env fica na pasta do executavel, nao no _MEI temp
+        base = Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).resolve().parent
+        env_path: Path = base / ".env"
         load_dotenv(dotenv_path=env_path)
 
         # Credenciais do portal

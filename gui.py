@@ -6,6 +6,8 @@ import tkinter as tk
 from pathlib import Path
 from tkinter import messagebox, ttk
 
+from playwright._impl._driver import compute_driver_executable
+
 from config import Config
 from portal import PortalNFSE
 from utils import get_logger, setup_logging
@@ -42,6 +44,12 @@ def verificar_playwright() -> bool:
     return _caminho_chromium() is not None
 
 
+def _cmd_playwright() -> list[str]:
+    """Retorna o comando para executar o Playwright CLI (funciona no .exe)."""
+    node, cli = compute_driver_executable()
+    return [str(node), str(cli)]
+
+
 def instalar_playwright(silencioso: bool = False) -> bool:
     """Instala o Chromium do Playwright.
 
@@ -53,15 +61,12 @@ def instalar_playwright(silencioso: bool = False) -> bool:
     """
     import threading
 
+    cmd = _cmd_playwright() + ["install", "chromium"]
+    env = {**os.environ, "PLAYWRIGHT_BROWSERS_PATH": str(pasta_browsers)}
+
     if silencioso:
-        # Modo silencioso: sem GUI - usado pelo instalador Inno
         try:
-            python = str(Path(sys.executable).parent / "_internal" / "python.exe") if getattr(sys, "frozen", False) else sys.executable
-            subprocess.run(
-                [python, "-m", "playwright", "install", "chromium"],
-                check=True, capture_output=True,
-                env={**os.environ, "PLAYWRIGHT_BROWSERS_PATH": str(pasta_browsers)},
-            )
+            subprocess.run(cmd, check=True, capture_output=True, env=env)
             return _caminho_chromium() is not None
         except Exception:
             return False
@@ -115,24 +120,15 @@ def instalar_playwright(silencioso: bool = False) -> bool:
 
     def instalacao():
         log("Preparando ambiente...")
-
-        python = str(Path(sys.executable).parent / "_internal" / "python.exe") if getattr(sys, "frozen", False) else sys.executable
-
-        if not Path(python).exists():
-            log(f"ERRO: Python nao encontrado em {python}")
-            resultado["ok"] = False
-            set_status("Erro!")
-            top.after(1000, top.destroy)
-            return
-
+        log(f"Comando: {' '.join(cmd)}")
         log("Baixando e instalando Chromium...")
 
         try:
             proc = subprocess.Popen(
-                [python, "-m", "playwright", "install", "chromium"],
+                cmd,
                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                 text=True, bufsize=1,
-                env={**os.environ, "PLAYWRIGHT_BROWSERS_PATH": str(pasta_browsers)},
+                env=env,
             )
             for linha in proc.stdout:
                 linha = linha.strip()

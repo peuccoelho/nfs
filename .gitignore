@@ -11,6 +11,10 @@ downloads/**/*.zip
 logs/
 logs/**/*.png
 
+# Logs, screenshots e relatorios da automacao Omie
+omie/logs/
+omie/output/
+
 # Cache do Python
 __pycache__/
 *.pyc

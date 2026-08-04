@@ -1,0 +1,1 @@
+"""Utilitarios reutilizaveis da automacao."""

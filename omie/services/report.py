@@ -16,7 +16,7 @@ class WorkOrderResult:
     """Resultado do processamento de uma ordem de servico."""
 
     os_id: str
-    status: str  # "success" | "failure"
+    status: str  # "success" | "via_sefaz" | "simulada" | "pulada" | "failure"
     attempts: int
     duration_seconds: float
     error: str | None = None
@@ -37,11 +37,15 @@ class ExecutionResult:
 
     @property
     def success_count(self) -> int:
-        return sum(1 for wo in self.work_orders if wo.status == "success")
+        return sum(1 for wo in self.work_orders if wo.status in {"success", "via_sefaz"})
 
     @property
     def failure_count(self) -> int:
         return sum(1 for wo in self.work_orders if wo.status == "failure")
+
+    @property
+    def pulada_count(self) -> int:
+        return sum(1 for wo in self.work_orders if wo.status == "pulada")
 
     @property
     def total_seconds(self) -> float:
@@ -79,6 +83,7 @@ class ReportGenerator:
             f"- Tempo total: {result.total_seconds:.1f}s",
             f"- OS processadas: {result.total_os}",
             f"- Sucesso: {result.success_count}",
+            f"- Puladas (sem dados no SEFAZ): {result.pulada_count}",
             f"- Falhas: {result.failure_count}",
             "",
             "## Ordens de servico",
@@ -106,6 +111,7 @@ class ReportGenerator:
             "tempo_total_segundos": round(result.total_seconds, 2),
             "total_os": result.total_os,
             "sucesso": result.success_count,
+            "puladas": result.pulada_count,
             "falhas": result.failure_count,
             "etapas": result.step_log,
             "ordens": [asdict(wo) for wo in result.work_orders],

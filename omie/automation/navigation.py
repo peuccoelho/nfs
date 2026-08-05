@@ -1,9 +1,8 @@
-"""Etapas de navegacao: selecao de empresa e acesso ao modulo NFS-e."""
+"""Etapas de navegacao: empresa, onboarding e acesso a lista de OS."""
 from __future__ import annotations
 
 from playwright.async_api import Page, TimeoutError
 
-from omie.automation.selectors import kanban as kanban_selectors
 from omie.automation.selectors import navigation as nav_selectors
 from omie.automation.waits import Waits
 from omie.config.settings import Settings
@@ -13,7 +12,7 @@ logger = get_logger(__name__)
 
 
 class Navigation:
-    """Navega pelo portal Omie ate o kanban de ordens de servico."""
+    """Navega pelo portal Omie ate a listagem de Ordens de Servico."""
 
     def __init__(self, page: Page, settings: Settings, waits: Waits) -> None:
         self._page = page
@@ -25,41 +24,78 @@ class Navigation:
         logger.info("Selecionando empresa '%s'...", self._settings.empresa)
         card = nav_selectors.company_card(self._page, self._settings.empresa)
         await self._waits.visible(
-            card, timeout=30000, description=f"empresa '{self._settings.empresa}'"
+            card, timeout=45000, description=f"empresa '{self._settings.empresa}'"
         )
-        await nav_selectors.access_button_for_company(
-            self._page, self._settings.empresa
-        ).click()
+        await self._waits.settle(quiet_ms=800, max_wait_ms=10000, description="portal")
+        await self._waits.click(
+            nav_selectors.access_button_for_company(
+                self._page, self._settings.empresa
+            ),
+            timeout=20000,
+            description=f"acessar empresa '{self._settings.empresa}'",
+        )
         await self._waits.for_timeout(2000)
         logger.info("Empresa '%s' selecionada.", self._settings.empresa)
 
-    async def go_to_os_kanban(self) -> None:
-        """Navega em Servicos > NFS-e e exibe as etapas das OS."""
-        logger.info("Navegando para Servicos > NFS-e...")
-        await self._click_menu(nav_selectors.MENU_SERVICOS)
-        await self._click_menu(nav_selectors.MENU_NFSE)
-        await self._waits.for_timeout(3000)
+    async def go_to_os_list(self) -> None:
+        """Abre Servicos > NFS-e > Listar todas as ordens de servico.
 
-        toggle = nav_selectors.kanban_toggle(self._page)
-        try:
-            await toggle.first.wait_for(state="visible", timeout=8000)
-            await toggle.first.click()
-            logger.info("Exibindo etapas das ordens de servico.")
-        except TimeoutError:
-            logger.info("Opcao de etapas nao encontrada; usando a visao padrao.")
-
+        Fecha o onboarding ('Depois') se estiver presente e aguarda a listagem
+        de OS.
+        """
+        await self.dismiss_onboarding(wait_attach=4000)
+        logger.info("Navegando para '%s'...", nav_selectors.MENU_SERVICOS)
         await self._waits.visible(
-            kanban_selectors.column(
-                self._page, kanban_selectors.SOURCE_COLUMN_TITLE
-            ),
-            timeout=30000,
-            description="coluna 'Ordem de Serviço'",
+            nav_selectors.servicos_menu_link(self._page),
+            timeout=60000,
+            description="menu 'Servicos e NFS-e'",
         )
-        logger.info("Kanban de ordens de servico aberto.")
+        await self._waits.settle(quiet_ms=800, max_wait_ms=15000, description="menu")
+        await self._waits.click(
+            nav_selectors.servicos_menu_link(self._page),
+            timeout=20000,
+            description="menu 'Servicos e NFS-e'",
+        )
+        await self._waits.for_timeout(2000)
 
-    async def _click_menu(self, nome: str) -> None:
-        """Clica em um item do menu pelo texto."""
-        item = nav_selectors.menu_item(self._page, nome)
-        await self._waits.visible(item, timeout=15000, description=f"menu '{nome}'")
-        await item.click()
-        await self._waits.for_timeout(1500)
+        logger.info(
+            "Abrindo a listagem de OS ('%s')...", nav_selectors.OS_LIST_LINK
+        )
+        await self._waits.visible(
+            nav_selectors.os_list_link(self._page),
+            timeout=45000,
+            description="link 'Listar todas as'",
+        )
+        await self._waits.click(
+            nav_selectors.os_list_link(self._page),
+            timeout=20000,
+            description="link 'Listar todas as'",
+        )
+        await self._waits.settle(quiet_ms=1000, max_wait_ms=20000, description="lista")
+
+        try:
+            await self._waits.visible(
+                nav_selectors.os_list_link(self._page),
+                timeout=20000,
+                description="listagem de OS",
+            )
+        except TimeoutError:
+            logger.info("Nao foi possivel confirmar a listagem; prosseguindo.")
+        logger.info("Listagem de Ordens de Servico aberta.")
+
+    async def dismiss_onboarding(self, wait_attach: int = 15000) -> None:
+        """Clica em 'Depois' caso o tour/onboarding esteja aberto.
+
+        Deve ser chamado logo apos o app abrir (em nova aba), antes de qualquer
+        navegacao, para o tour nao interceptar os cliques. Aguarda o popup
+        aparecer (pode abrir com alguns segundos de atraso).
+        """
+        botao = nav_selectors.onboarding_later_button(self._page)
+        try:
+            await botao.first.wait_for(state="attached", timeout=wait_attach)
+            if await botao.first.is_visible(timeout=8000):
+                await botao.first.click(timeout=10000)
+                await self._waits.for_timeout(1500)
+                logger.info("Onboarding fechado (botao 'Depois').")
+        except Exception as exc:
+            logger.debug("Nenhum onboarding presente; seguindo. (%s)", exc)

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import asyncio
 
-from playwright.async_api import Page
+from playwright.async_api import Page, TimeoutError
 
 from omie.automation import dialogs
 from omie.automation.selectors import login as login_selectors
@@ -26,5 +26,21 @@ class AuthenticationService:
 
         campo = login_selectors.two_factor_input(page)
         await campo.fill(code)
-        await login_selectors.two_factor_submit(page).click()
+
+        # Muitas telas do Omie validam automaticamente ao preencher o codigo,
+        # ou enviam com Enter. Tentamos destruir o campo via Enter antes de
+        # clicar no botao, evitando regressar ao botao generico ("Acessar")
+        # que pode ficar ambiguo apos a navegacao para o portal de apps.
+        try:
+            await page.keyboard.press("Enter")
+        except Exception:
+            pass
+
+        # Se a tela de 2FA continuar presente, clica no botao de envio.
+        try:
+            await campo.wait_for(state="visible", timeout=2500)
+            submit = login_selectors.two_factor_submit(page)
+            await submit.first.click(timeout=10000)
+        except (TimeoutError, Exception):
+            logger.info("Codigo 2FA enviado (tela ja estava avançando).")
         logger.info("Codigo 2FA enviado.")

@@ -25,20 +25,34 @@ logger = get_logger(__name__)
 class KanbanProcessor:
     """Itera por todas as OS da coluna e fatura automaticamente."""
 
-    def __init__(self, page: Page, settings: Settings, waits: Waits) -> None:
+    def __init__(
+        self,
+        page: Page,
+        settings: Settings,
+        waits: Waits,
+        recorder: object | None = None,
+        dry_run: bool = False,
+    ) -> None:
         self._page = page
         self._settings = settings
         self._waits = waits
+        self._recorder = recorder
+        self._dry_run = dry_run
         self._invoice = InvoiceBiller(page, settings, waits)
-        self._sefaz = SefazUpdater(page, waits)
+        self._sefaz = SefazUpdater(page, waits, recorder=recorder)
 
     async def process_all(self) -> list[WorkOrderResult]:
-        """Processa todas as OS disponiveis na coluna de origem."""
+        """Processa todas as OS disponiveis na coluna de origem.
+
+        Em modo ``dry_run`` nenhuma OS e movida: apenas lista e registra quais
+        seriam faturadas.
+        """
         resultados: list[WorkOrderResult] = []
         logger.info("Iniciando processamento do kanban.")
 
         iniciais = await kanban_selectors.cards(self._source_column()).count()
         logger.info("Quantidade de OS encontradas na coluna: %d", iniciais)
+        await self._capture("kanban_inicio")
 
         while True:
             source = self._source_column()
@@ -67,10 +81,23 @@ class KanbanProcessor:
                 continue
 
             logger.info("Localizada OS %s na coluna de origem.", os_id)
-            resultado = await self._process_one(os_id)
+            if self._dry_run:
+                logger.info(
+                    "Dry-run: OS %s registrada sem faturamento.", os_id
+                )
+                resultado = WorkOrderResult(
+                    os_id=os_id,
+                    status="simulada",
+                    attempts=0,
+                    duration_seconds=0.0,
+                    error="dry-run (sem faturamento)",
+                )
+            else:
+                resultado = await self._process_one(os_id)
             resultados.append(resultado)
             await self._waits.for_timeout(600)
 
+        await self._capture("kanban_fim")
         logger.info(
             "Processamento concluido: %d OS (sucesso=%d, falhas=%d).",
             len(resultados),
@@ -78,6 +105,13 @@ class KanbanProcessor:
             sum(1 for r in resultados if r.status == "failure"),
         )
         return resultados
+
+    async def _capture(self, nome: str) -> None:
+        if self._recorder is not None:
+            try:
+                await self._recorder.capture(nome, self._page)
+            except Exception as exc:
+                logger.warning("Falha ao capturar '%s': %s", nome, exc)
 
     async def _process_one(self, os_id: str) -> WorkOrderResult:
         """Fatura uma OS com retry (e correcao SEFAZ) ate o limite configurado."""

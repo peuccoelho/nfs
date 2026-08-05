@@ -1,31 +1,27 @@
-"""Seletores da tela de login do portal Omie.
-
-ATENCAO: os seletores abaixo sao valores padrao razoaveis para o portal
-Omie (app.omie.com.br) e devem ser conferidos/ajustados conforme o DOM real.
-"""
+"""Seletores da tela de login do portal Omie (fluxo real confirmado via Codegen)."""
 from __future__ import annotations
 
 from playwright.async_api import Locator, Page
 
 from omie.automation.selectors import common
 
-# TODO: conferir os seletores reais do portal Omie.
+# Fluxo real do login (app.omie.com.br/login):
+#   1. e-mail -> Continuar
+#   2. senha -> Entrar
+#   3. codigo 2FA -> Validar
 EMAIL_INPUT_SELECTOR = "input[type='email'], input[placeholder*='e-mail' i]"
 PASSWORD_INPUT_SELECTOR = "input[type='password']"
 
-# TODO: nome dos botoes conforme o DOM real (login pode ser em 1 ou 2 etapas).
-SUBMIT_BUTTON_NAMES: tuple[str, ...] = ("Entrar", "Acessar", "Entrar no Omie")
-CONTINUE_BUTTON_NAMES: tuple[str, ...] = ("Continuar", "Avançar", "Próximo")
+SUBMIT_BUTTON_NAMES: tuple[str, ...] = ("Entrar",)
+CONTINUE_BUTTON_NAMES: tuple[str, ...] = ("Continuar",)
+VALIDATE_BUTTON_NAME = "Validar"
 
-# TODO: campo do codigo de verificacao (autenticador/SMS/email).
 TWO_FACTOR_INPUT_SELECTOR = (
     "input[placeholder*='código' i], "
     "input[placeholder*='codigo' i], "
     "input[inputmode='numeric']"
 )
 
-# TODO: seletor de algo presente apenas quando o usuario esta logado
-# (menu lateral, avatar, etc.). Alternativa: aguardar a URL.
 APP_HOME_SELECTOR = (
     "[class*='menu-app'], [class*='side-menu'], "
     "[data-testid*='home'], .omie-app"
@@ -36,30 +32,33 @@ def email_input(page: Page) -> Locator:
     return page.locator(EMAIL_INPUT_SELECTOR).first
 
 
+def email_textbox(page: Page) -> Locator:
+    return page.get_by_role("textbox", name="Digite seu endereço de e-mail").first
+
+
 def password_input(page: Page) -> Locator:
     return page.locator(PASSWORD_INPUT_SELECTOR).first
 
 
+def password_textbox(page: Page) -> Locator:
+    return page.get_by_role("textbox", name="Digite aqui sua senha").first
+
+
 def submit_button(page: Page) -> Locator:
-    loc = common.button(page, SUBMIT_BUTTON_NAMES[0], exact=True)
-    for nome in SUBMIT_BUTTON_NAMES[1:]:
-        loc = loc.or_(common.button(page, nome, exact=True))
-    return loc
+    return common.button(page, SUBMIT_BUTTON_NAMES[0], exact=True)
 
 
 def continue_button(page: Page) -> Locator:
-    loc = common.button(page, CONTINUE_BUTTON_NAMES[0], exact=True)
-    for nome in CONTINUE_BUTTON_NAMES[1:]:
-        loc = loc.or_(common.button(page, nome, exact=True))
-    return loc
+    return common.button(page, CONTINUE_BUTTON_NAMES[0], exact=True)
 
 
 def two_factor_input(page: Page) -> Locator:
-    return page.locator(TWO_FACTOR_INPUT_SELECTOR).first
+    # O campo real tem role spinbutton (campo numerico de 1 digito por vez).
+    return page.get_by_role("spinbutton", name="Digite o código de segurança").first
 
 
 def two_factor_submit(page: Page) -> Locator:
-    return submit_button(page)
+    return common.button(page, VALIDATE_BUTTON_NAME, exact=True)
 
 
 def app_home_marker(page: Page) -> Locator:

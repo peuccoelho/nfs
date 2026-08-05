@@ -13,19 +13,33 @@ logger = get_logger(__name__)
 class SefazUpdater:
     """Executa o fluxo 'Pesquisar Sefaz' para corrigir a OS e voltar ao kanban."""
 
-    def __init__(self, page: Page, waits: Waits) -> None:
+    def __init__(self, page: Page, waits: Waits, recorder: object | None = None) -> None:
         self._page = page
         self._waits = waits
+        self._recorder = recorder
 
     async def fix_and_return(self) -> None:
         """Executa o procedimento completo de atualizacao via SEFAZ."""
         logger.info("Iniciando correcao via SEFAZ...")
+        await self._capture("sefaz_erro")
         await self._open_sefaz_search()
+        await self._capture("sefaz_aberto")
         await self._run_search()
+        await self._capture("sefaz_resultados")
         await self._update_all_results()
+        await self._capture("sefaz_atualizado")
         await self._save()
+        await self._capture("sefaz_salvo")
         await self._close_and_return()
+        await self._capture("sefaz_fechado")
         logger.info("Correcao via SEFAZ concluida.")
+
+    async def _capture(self, nome: str) -> None:
+        if self._recorder is not None:
+            try:
+                await self._recorder.capture(nome, self._page)
+            except Exception as exc:
+                logger.warning("Falha ao capturar '%s': %s", nome, exc)
 
     async def _open_sefaz_search(self) -> None:
         """Clica em 'Pesquisar Sefaz' (janela de erro da NFS-e)."""

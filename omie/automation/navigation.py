@@ -43,7 +43,7 @@ class Navigation:
         Fecha o onboarding ('Depois') se estiver presente e aguarda a listagem
         de OS.
         """
-        await self.dismiss_onboarding(wait_attach=4000)
+        await self.dismiss_onboarding(wait_attach=3000)
         logger.info("Navegando para '%s'...", nav_selectors.MENU_SERVICOS)
         await self._waits.visible(
             nav_selectors.servicos_menu_link(self._page),
@@ -57,6 +57,12 @@ class Navigation:
             description="menu 'Servicos e NFS-e'",
         )
         await self._waits.for_timeout(2000)
+
+        # O popup 'Primeiros Passos' da conta Nucleo abre apos entrar no modulo
+        # (Codegen: menu -> 'Depois' -> 'Fechar'); fechamo-lo agora, antes de
+        # acessar a listagem, para nao interceptar o clique abaixo.
+        await self.dismiss_onboarding(wait_attach=4000)
+        await self.dismiss_primeiros_passos()
 
         logger.info(
             "Abrindo a listagem de OS ('%s')...", nav_selectors.OS_LIST_LINK
@@ -99,3 +105,26 @@ class Navigation:
                 logger.info("Onboarding fechado (botao 'Depois').")
         except Exception as exc:
             logger.debug("Nenhum onboarding presente; seguindo. (%s)", exc)
+
+    async def dismiss_primeiros_passos(self) -> None:
+        """Fecha o popup 'Primeiros Passos' (conta Nucleo) via botao 'Fechar'.
+
+        So a conta Nucleo exibe esse popup (guia passo-a-passo do modulo de
+        NFS-e); para as demais ele nao aparece e o metodo apenas verifica e
+        segue. Confirma o Codegen: botao padrao do sistema 'Fechar'.
+        """
+        fechar = nav_selectors.primeiros_passos_close_button(self._page)
+        try:
+            await fechar.wait_for(state="visible", timeout=10000)
+        except Exception:
+            logger.debug("Nenhum popup 'Primeiros Passos' presente; seguindo.")
+            return
+        try:
+            await fechar.click(timeout=10000)
+            await self._waits.for_timeout(1500)
+            logger.info("Popup 'Primeiros Passos' fechado (botao 'Fechar').")
+        except Exception as exc:
+            logger.warning(
+                "Nao foi possivel fechar o popup 'Primeiros Passos': %s", exc
+            )
+            await self._waits.for_timeout(2000)

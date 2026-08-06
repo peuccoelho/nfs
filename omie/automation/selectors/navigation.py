@@ -40,6 +40,21 @@ def onboarding_later_button(page: Page) -> Locator:
     return page.get_by_role("button", name=ONBOARDING_LATER_BUTTON, exact=True)
 
 
+def front_dialog(page: Page) -> Locator:
+    """Div de dialogo mais a frente (visivel e ultima no DOM)."""
+    return page.locator("[id^='dialog-outer-wrapper-']:visible").last
+
+
+def primeiros_passos_close_button(page: Page) -> Locator:
+    """Botao 'Fechar' (padrao do sistema) do popup 'Primeiros Passos'.
+
+    Fluxo confirmado via Codegen: apos entrar no modulo de NFS-e, o popup abre
+    e fecha com `get_by_role('button', name='Fechar')`. Escopamos ao dialogo da
+    frente para nao clicar num 'Fechar' de outra tela/atras.
+    """
+    return front_dialog(page).get_by_role("button", name="Fechar").first
+
+
 def servicos_menu_link(page: Page) -> Locator:
     """Link de menu 'Servicos e NFS-e'."""
     return page.get_by_role("link", name=MENU_SERVICOS).first

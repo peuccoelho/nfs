@@ -33,6 +33,8 @@ ERROR_FIELDS_FRAGMENT = "Alguns campos obrigatórios"
 ERROR_ITEM_FRAGMENT = "Para emitir a NFS-e falta preencher"
 # Mensagem de OS ja faturada (nao faturavel -> pular para a proxima).
 ERROR_ALREADY_FATURADA_FRAGMENT = "já foi faturada"
+# Mensagem de Codigo NBS obrigatorio nao preenchido (nao resolve via SEFAZ).
+ERROR_NBS_FRAGMENT = "Código NBS não foi informado"
 
 
 def error_item_message(page: Page) -> Locator:
@@ -44,9 +46,63 @@ def error_item_message(page: Page) -> Locator:
     return page.locator(f"text={ERROR_ITEM_FRAGMENT}")
 
 
+def error_item_link(page: Page) -> Locator:
+    """Link 'Para emitir a NFS-e falta preencher...' no dialogo da frente.
+
+    Fluxo manual confirmado: apos 'Sim', esse link aparece no dialogo
+    'Conferindo'; clicar nele abre o detalhe do item faltante (que se fecha com
+    'Fechar') e entao fecha-se o dialogo atual, pulando a OS.
+    """
+    return page.locator("a").filter(has_text=ERROR_ITEM_FRAGMENT).first
+
+
 def already_faturada_message(page: Page) -> Locator:
     """Mensagem de que a OS ja foi faturada (nao faturavel novamente)."""
     return page.locator(f"text={ERROR_ALREADY_FATURADA_FRAGMENT}")
+
+
+def nbs_error_message(page: Page) -> Locator:
+    """Mensagem de que o Codigo NBS e obrigatorio e nao foi preenchido.
+
+    Nao e resolvido via SEFAZ; a OS deve ser pulada (fechar e ir para a
+    proxima).
+    """
+    return page.locator(f"text={ERROR_NBS_FRAGMENT}")
+
+
+CONFERINDO_FRAGMENT = "Conferindo a Ordem de Servi"
+
+
+def conferindo_dialog(page: Page) -> Locator:
+    """Dialogo 'Conferindo a Ordem de Servico' (checklist de faturamento).
+
+    Abre apos confirmar com 'Sim' e faz checagens (certificado NFS-e, dados do
+    cliente, itens, detalhes da prefeitura). Exige um clique em 'OK' para
+    prosseguir com a emissao.
+    """
+    return front_dialog(page).filter(has_text=CONFERINDO_FRAGMENT)
+
+
+def conferindo_ok_button(page: Page) -> Locator:
+    """Botao/link 'OK' (verde) do dialogo 'Conferindo a Ordem de Servico'."""
+    return conferindo_dialog(page).get_by_text("OK", exact=True).first
+
+
+def any_error_message(page: Page) -> Locator:
+    """Uniao de todas as mensagens de erro conhecidas do faturamento.
+
+    Seletor somente-CSS (sem misturar engine ``text=``): o item/falta-e-campos
+    sao links ``a`` e os demais sao textos.
+
+    Permite aguardar uma unica vez por qualquer dos erros (em vez de checagens
+    sequenciais que podem perder o aparecimento tardio do dialogo).
+    """
+    return page.locator(
+        f"a:has-text('{ERROR_ITEM_FRAGMENT}'), "
+        f"a:has-text('{ERROR_FIELDS_FRAGMENT}'), "
+        f":has-text('{ERROR_ALREADY_FATURADA_FRAGMENT}'), "
+        f":has-text('{ERROR_NBS_FRAGMENT}')"
+    )
 
 
 def notif_close(page: Page) -> Locator:
@@ -71,6 +127,29 @@ def front_dialog(page: Page) -> Locator:
 def aguardando_cells(page: Page) -> Locator:
     """Celulas de OS que estao 'Aguardando faturamento' no dialogo da frente."""
     return front_dialog(page).get_by_role("cell", name=AGUARDANDO_STATUS)
+
+
+FILTRO_SITUACAO_CLASS = "SITUACAO"
+
+
+def situacao_filter_input(page: Page) -> Locator:
+    """Campo de texto do filtro da coluna 'Situacao' (linha de filtro da grade).
+
+    Confirmado via Codegen: a linha ``tr.ui-iggrid-filterrow`` tem uma celula
+    ``td.ui-iggrid-filtercell.SITUACAO`` cujo ``input.ui-iggrid-filtereditor``
+    recebe o texto do filtro (digitar 'aguardando' + Enter).
+    """
+    return front_dialog(page).locator(
+        "td.ui-iggrid-filtercell.SITUACAO input.ui-igedit-field, "
+        "td.ui-iggrid-filtercell.SITUACAO input.ui-iggrid-filtereditor"
+    ).first
+
+
+def situacao_filter_dropdown(page: Page) -> Locator:
+    """Botao de operador do filtro de situacao (opcional)."""
+    return front_dialog(page).locator(
+        "td.ui-iggrid-filtercell.SITUACAO .ui-iggrid-filterbutton"
+    ).first
 
 
 def row_of(cell: Locator) -> Locator:

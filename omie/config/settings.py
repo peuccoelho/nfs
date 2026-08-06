@@ -12,6 +12,9 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+# Empresas disponiveis para selecao no portal de apps (apos o login).
+SUPPORTED_EMPRESAS: tuple[str, ...] = ("PFO Turismo", "Nucleo")
+
 
 def project_root() -> Path:
     """Retorna a raiz do projeto (pasta do .exe quando empacotado)."""

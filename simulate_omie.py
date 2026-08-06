@@ -23,6 +23,7 @@ from pathlib import Path
 
 from omie.automation.runner import AutomationRunner
 from omie.config import Credentials, Settings
+from omie.config.settings import SUPPORTED_EMPRESAS
 from omie.services.logger import get_logger, setup_logging
 from omie.simulation.recorder import SimulationRecorder
 
@@ -41,6 +42,12 @@ def _parse_args() -> argparse.Namespace:
         "--no-trace",
         action="store_true",
         help="Nao grava o trace do Playwright (apenas screenshots/HTML).",
+    )
+    parser.add_argument(
+        "--empresa",
+        choices=SUPPORTED_EMPRESAS,
+        help="Empresa para faturar as OS (ex.: Nucleo). Se omitida, o script "
+        "perguntara ao final do login.",
     )
     return parser.parse_args()
 
@@ -77,6 +84,7 @@ async def main() -> int:
         dry_run=not args.full,
         trace_path=trace_path,
         session_path=settings.base / "logs" / "sessao_omie.json",
+        empresa=args.empresa,
     )
 
     try:

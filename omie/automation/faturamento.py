@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import re
 
+from playwright._impl._errors import TargetClosedError
 from playwright.async_api import Locator, Page, TimeoutError
 
 from omie.automation.selectors import navigation as nav_selectors
@@ -50,9 +51,16 @@ class OSService:
         while True:
             if not primeira_vez:
                 await self._refresh_list()
+            else:
+                await self._apply_aguardando_filter()
             primeira_vez = False
             try:
                 cell = await self._next_aguardando()
+            except TargetClosedError:
+                logger.warning(
+                    "Pagina fechou durante o loop; relancando para o retry do runner."
+                )
+                raise
             except Exception as exc:
                 logger.warning("Pagina indisponivel durante o loop: %s", exc)
                 break
@@ -98,6 +106,37 @@ class OSService:
             sum(1 for r in resultados if r.status == "pulada"),
         )
         return resultados
+
+    async def _apply_aguardando_filter(self) -> None:
+        """Filtra a lista pela situacao 'aguardando' (uma unica vez, no inicio).
+
+        Idempotente: se o campo de filtro da coluna 'Situacao' ja contiver um
+        valor de 'aguar...', nao faz nada (vai direto ao faturamento); se estiver
+        vazio, preenche 'aguardando' e pressiona Enter, exibindo apenas as OS
+        aguardando faturamento.
+        """
+        logger.info("Aplicando filtro de situacao 'aguardando'...")
+        input_filtro = os_selectors.situacao_filter_input(self._page)
+        try:
+            valor = await input_filtro.input_value(timeout=10000)
+        except Exception as exc:
+            logger.warning("Nao foi possivel acessar o filtro de situacao: %s", exc)
+            return
+        if valor and "aguar" in valor.lower():
+            logger.info("Filtro 'aguardando' ja aplicado; seguindo direto.")
+            return
+        try:
+            await input_filtro.click(timeout=10000)
+            await input_filtro.fill("aguardando")
+            await input_filtro.press("Enter")
+            logger.info(
+                "Filtro de situacao preenchido com 'aguardando' (era '%s').", valor
+            )
+            await self._waits.settle(
+                quiet_ms=1000, max_wait_ms=15000, description="apos filtrar situacao"
+            )
+        except Exception as exc:
+            logger.warning("Falha ao aplicar o filtro de situacao: %s", exc)
 
     async def _refresh_list(self) -> None:
         """Deixa a listagem de OS pronta para a proxima OS a faturar.
@@ -214,33 +253,13 @@ class OSService:
             )
             await self._capture("faturado")
 
-            if await self._required_fields_error(timeout=4000):
-                resolvido = await self._sefaz_correction()
-                if resolvido:
-                    status = "via_sefaz"
-                else:
-                    status = "pulada"
-                    self._puladas.add(os_id)
-            elif await self._error_item_message(timeout=4000):
-                logger.warning(
-                    "OS %s: item especifico faltando (nao via SEFAZ); pulando.",
-                    os_id,
-                )
-                await self._click_if_visible(
-                    os_selectors.sefaz_close(self._page),
-                    "Fechar dialogo (item faltando)",
-                )
-                status = "pulada"
-                self._puladas.add(os_id)
-            elif await self._already_faturada_error(timeout=4000):
-                logger.warning(
-                    "OS %s: ja faturada; pulando para a proxima.", os_id
-                )
-                await self._close_current_popup()
-                status = "pulada"
-                self._puladas.add(os_id)
-            else:
-                status = "success"
+            # Detecta as condicionais PRIMEIRO: apos 'Sim', o app pode abrir o
+            # checklist 'Conferindo a Ordem de Servico' com um link de erro
+            # ('Para emitir a NFS-e falta...'), o erro de 'Alguns campos
+            # obrigatorios' (SEFAZ) ou outros avisos. So clicamos no 'OK' do
+            # Conferindo quando nenhuma condicional estiver presente.
+            error_kind = await self._detect_error_kind(timeout=15000)
+            status = await self._handle_billing_error(os_id, error_kind)
             await self._dismiss_notifs()
             return self._result(os_id, status)
         except Exception as exc:
@@ -274,6 +293,115 @@ class OSService:
             return True
         except TimeoutError:
             return False
+
+    async def _error_item_link_present(self, timeout: int = 8000) -> bool:
+        """True se o link 'Para emitir a NFS-e falta...' (item) apareceu."""
+        link = os_selectors.error_item_link(self._page)
+        try:
+            await link.wait_for(state="visible", timeout=timeout)
+            return True
+        except TimeoutError:
+            return False
+
+    async def _nbs_error_message(self, timeout: int = 8000) -> bool:
+        """True se apareceu o aviso do Codigo NBS obrigatorio nao preenchido."""
+        msg = os_selectors.nbs_error_message(self._page)
+        try:
+            await msg.first.wait_for(state="visible", timeout=timeout)
+            return True
+        except TimeoutError:
+            return False
+
+    async def _detect_error_kind(self, timeout: int = 12000) -> str | None:
+        """Espera (uma unica vez) por qualquer erro conhecido e o classifica.
+
+        Retorna ``'fields'`` (campos obrigatorios -> SEFAZ), ``'item'``,
+        ``'nbs'``, ``'already'``, ``'unknown'`` ou ``None`` se nenhum erro
+        apareceu dentro de ``timeout`` (faturamento bem-sucedido).
+        """
+        union = os_selectors.any_error_message(self._page)
+        try:
+            await union.first.wait_for(state="visible", timeout=timeout)
+        except TimeoutError:
+            return None
+        for nome, detector in (
+            ("nbs", self._nbs_error_message),
+            ("item", self._error_item_link_present),
+            ("already", self._already_faturada_error),
+            ("fields", self._required_fields_error),
+        ):
+            if await detector(timeout=600):
+                return nome
+        return "unknown"
+
+    async def _handle_billing_error(self, os_id: str, error_kind: str | None) -> str:
+        """Classifica a condicional pos-'Sim' e devolve o status final.
+
+        Regra (validada manualmente): somente o erro 'Alguns campos
+        obrigatorios' (``fields``) vai para a pesquisa SEFAZ; QUALQUER outro
+        erro fecha o dialogo e pula a OS. Sem erro conhecido, tenta prosseguir
+        clicando no 'OK' do dialogo 'Conferindo'.
+        """
+        if error_kind == "fields":
+            resolvido = await self._sefaz_correction()
+            if resolvido:
+                return "via_sefaz"
+            self._puladas.add(os_id)
+            return "pulada"
+
+        if error_kind in ("item", "nbs", "already", "unknown"):
+            logger.warning(
+                "OS %s: erro '%s'; fechando o dialogo e pulando.", os_id, error_kind
+            )
+            # Fechar UMA vez: volta direto para a tabela e pula a OS escolhida.
+            await self._close_current_popup()
+            self._puladas.add(os_id)
+            return "pulada"
+
+        # Sem erro conhecido: 'Conferindo' com todos os checks OK.
+        if await self._dismiss_conferindo():
+            erro_apos_ok = await self._detect_error_kind(timeout=10000)
+            if erro_apos_ok:
+                return await self._handle_billing_error(os_id, erro_apos_ok)
+            return "success"
+
+        # Dialogo/popup remanescente sem OK: erro nao identificado; pula.
+        logger.warning(
+            "OS %s: popup sem 'OK' apos 'Sim'; fechando e pulando.", os_id
+        )
+        await self._close_current_popup()
+        self._puladas.add(os_id)
+        return "pulada"
+
+    async def _conferindo_present(self) -> bool:
+        """True se o dialogo 'Conferindo a Ordem de Servico' esta visivel."""
+        try:
+            return await os_selectors.conferindo_dialog(self._page).is_visible(
+                timeout=500
+            )
+        except Exception:
+            return False
+
+    async def _dismiss_conferindo(self) -> bool:
+        """Clica no 'OK' do dialogo 'Conferindo a Ordem de Servico'.
+
+        Apos confirmar com 'Sim', o app abre esse checklist de faturamento
+        (certificado NFS-e, cliente, itens, prefeitura) que precisa do clique
+        em 'OK' para seguir com a emissao. Os checks podem demorar uns
+        segundos, entao tentamos algumas vezes com espera curta.
+        """
+        for _ in range(4):
+            if await self._click_if_visible(
+                os_selectors.conferindo_ok_button(self._page),
+                "OK do dialogo 'Conferindo'",
+                wait_ms=8000,
+            ):
+                await self._waits.for_timeout(3000)
+                return True
+            if not await self._conferindo_present():
+                return False
+            await self._waits.for_timeout(2500)
+        return False
 
     async def _close_current_popup(self) -> None:
         """Fecha o dialogo/notificacao atual (botao 'Fechar')."""
@@ -337,24 +465,28 @@ class OSService:
         if not await self._click_if_visible(
             os_selectors.pesquisar_sefaz_link(self._page), "Pesquisar SEFAZ"
         ):
+            await self._close_current_popup()
             return False
         await self._waits.for_timeout(3000)
 
         if not await self._click_if_visible(
             os_selectors.pesquisar_button(self._page), "Pesquisar"
         ):
+            await self._close_current_popup()
             return False
         await self._waits.for_timeout(6000)
 
         if not await self._click_if_visible(
             os_selectors.atualizar_button(self._page), "Atualizar as informacoes"
         ):
+            await self._close_current_popup()
             return False
         await self._waits.for_timeout(2000)
 
         if not await self._click_if_visible(
             os_selectors.salvar_link(self._page), "Salvar"
         ):
+            await self._close_current_popup()
             return False
         await self._waits.for_timeout(3000)
         await self._capture("sefaz_salvo")
@@ -385,6 +517,16 @@ class OSService:
                 os_selectors.sefaz_close(self._page),
                 "Fechar dialogo (item faltando)",
             )
+        elif await self._nbs_error_message(timeout=8000):
+            resolvido = False
+            logger.warning(
+                "Codigo NBS obrigatorio nao preenchido apos o SEFAZ; OS sera "
+                "pulada (preenchimento manual depois)."
+            )
+            await self._click_if_visible(
+                os_selectors.sefaz_close(self._page),
+                "Fechar dialogo (Codigo NBS)",
+            )
         elif await self._required_fields_error(timeout=8000):
             resolvido = False
             logger.warning(
@@ -401,15 +543,15 @@ class OSService:
         logger.info("Correcao SEFAZ concluida (resolvido=%s).", resolvido)
         return resolvido
 
-    async def _click_if_visible(self, locator: Locator, desc: str) -> bool:
+    async def _click_if_visible(self, locator: Locator, desc: str, wait_ms: int = 30000) -> bool:
         """Clica no primeiro elemento visivel do locator, com tolerancia.
 
-        Aguarda ate 30s pelo elemento ficar visivel (dialogos abrem devagar) e
-        tenta o clique ate 3x, absorvendo interceptacoes de overlay e rede
-        instavel.
+        Aguarda ate ``wait_ms`` pelo elemento ficar visivel (dialogos abrem
+        devagar) e tenta o clique ate 3x, absorvendo interceptacoes de overlay
+        e rede instavel.
         """
         try:
-            await locator.first.wait_for(state="visible", timeout=30000)
+            await locator.first.wait_for(state="visible", timeout=wait_ms)
         except Exception as exc:
             logger.warning("'%s' nao ficou visivel: %s", desc, exc)
             return False

@@ -7,22 +7,25 @@ faturamento e idempotente (OS ja faturada sao puladas), reiniciar e seguro.
 from __future__ import annotations
 
 import asyncio
+from dataclasses import replace
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 from playwright.async_api import Page
 
+from omie.automation import dialogs
 from omie.automation.browser import BrowserManager
 from omie.automation.faturamento import OSService
 from omie.automation.login import LoginFlow
 from omie.automation.navigation import Navigation
 from omie.automation.waits import Waits
 from omie.config.credentials import Credentials
-from omie.config.settings import Settings
+from omie.config.settings import SUPPORTED_EMPRESAS, Settings
 from omie.services.authentication import AuthenticationService
 from omie.services.logger import get_logger
 from omie.services.report import ExecutionResult
+from omie.utils.exceptions import ConfigError
 from omie.utils.screenshots import capture_error_snapshot
 
 logger = get_logger(__name__)
@@ -43,6 +46,7 @@ class AutomationRunner:
         dry_run: bool = False,
         trace_path: Path | None = None,
         session_path: Path | None = None,
+        empresa: str | None = None,
     ) -> None:
         self._settings = settings
         self._credentials = credentials
@@ -50,6 +54,7 @@ class AutomationRunner:
         self._dry_run = dry_run
         self._trace_path = trace_path
         self._session_path = session_path
+        self._empresa = empresa
         self._browser = BrowserManager(settings)
         self._page: Page | None = None
         self._current_step = "inicializacao"
@@ -121,6 +126,11 @@ class AutomationRunner:
         if self._session_path is not None:
             await self._browser.save_storage_state(self._session_path)
         await self._capture("login_fim")
+
+        if self._empresa is None:
+            await self._prompt_empresa()
+        else:
+            self._apply_empresa(self._empresa)
 
         navigation = Navigation(self._page, self._settings, waits)
         self._step("Selecionando empresa")
@@ -203,6 +213,27 @@ class AutomationRunner:
         """Fecha o navegador atual para que a proxima tentativa recomece."""
         await self._browser.stop()
         self._page = None
+
+    async def _prompt_empresa(self) -> None:
+        """Pergunta ao usuario qual empresa processar (apos o login).
+
+        Abre uma janela de selecao (Tkinter, como no 2FA) com as empresas
+        disponiveis e aplica a escolha a ``settings.empresa``.
+        """
+        nome = await asyncio.to_thread(dialogs.ask_empresa, SUPPORTED_EMPRESAS)
+        if not nome:
+            raise ConfigError("Nenhuma empresa selecionada pelo usuario")
+        self._apply_empresa(nome)
+
+    def _apply_empresa(self, nome: str) -> None:
+        """Define a empresa escolhida em settings e loga."""
+        self._empresa = nome
+        if self._settings.empresa != nome:
+            anterior = self._settings.empresa
+            self._settings = replace(self._settings, empresa=nome)
+            logger.info("Empresa selecionada: '%s' (era '%s').", nome, anterior)
+        else:
+            logger.info("Empresa selecionada: '%s'.", nome)
 
     def _step(self, descricao: str) -> None:
         """Registra a etapa atual no log e no relatorio."""

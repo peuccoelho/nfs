@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 """Simulacao guiada do fluxo Omie com Playwright (modo inspecao).
 
-Percorre as mesmas etapas da automacao real (login, empresa, NFS-e, kanban e
+Percorre as mesmas etapas da automacao real (login, empresa, NFS-e e
 SEFAZ) registrando screenshots, HTML, trace e um relatorio de seletores para
 analisar e corrigir os modulos de ``selectors``.
 

@@ -11,7 +11,7 @@ logger = get_logger(__name__)
 
 
 class SefazUpdater:
-    """Executa o fluxo 'Pesquisar Sefaz' para corrigir a OS e voltar ao kanban."""
+    """Executa o fluxo 'Pesquisar Sefaz' para corrigir a OS e voltar ao faturamento."""
 
     def __init__(self, page: Page, waits: Waits, recorder: object | None = None) -> None:
         self._page = page
@@ -103,7 +103,7 @@ class SefazUpdater:
         await self._waits.for_timeout(1500)
 
     async def _close_and_return(self) -> None:
-        """Fecha janelas/popups extras e retorna ao kanban."""
+        """Fecha janelas/popups extras e retorna ao faturamento."""
         for popup in self._page.context.pages:
             if popup != self._page:
                 await popup.close()

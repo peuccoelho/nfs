@@ -51,8 +51,6 @@ nfs/
 │   │   ├── navigation.py     # seleção empresa, onboarding/popups, ir para lista
 │   │   ├── faturamento.py    # OSService: loop de faturamento, condicionais, SEFAZ, skip
 │   │   ├── sefaz.py          # correção de dados no SEFAZ (campos obrigatórios)
-│   │   ├── invoice.py        # fluxo legado de emissão NFS-e (NÃO usado no loop atual)
-│   │   ├── kanban.py         # fluxo legado kanban (NÃO usado no loop atual)
 │   │   ├── runner.py         # AutomationRunner: retry, aplicação de empresa (_apply_empresa)
 │   │   ├── waits.py          # Waits: settle() e click() resilientes, esperas explícitas
 │   │   └── dialogs.py        # Tkinter: ask_2fa_code e ask_empresa (thread separada)
@@ -61,8 +59,7 @@ nfs/
 │   │   ├── login.py          # seletores da tela de login
 │   │   ├── navigation.py     # seletores de menu/empresa/onboarding/popups
 │   │   ├── os.py             # seletores da lista/célula/checklist de OS
-│   │   ├── sefaz.py          # seletores do portal SEFAZ
-│   │   └── kanban.py         # seletores do fluxo legado kanban
+│   │   └── sefaz.py          # seletores do portal SEFAZ
 │   ├── services/
 │   │   ├── logger.py         # setup_logging + get_logger (console + arquivo)
 │   │   ├── report.py         # WorkOrderResult, ExecutionResult, ReportGenerator (MD+JSON)
@@ -178,8 +175,8 @@ python simulate_omie.py --full --empresa Nucleo
 - **`_extract_os_id`:** a extração do ID da OS a partir do texto da linha pode
   capturar o valor em R$ em vez do número real da OS (ex.: valor R$ 801 vs
   "OS 607"). Melhorar a extração (ex.: usar o número da célula/coluna correta).
-- **Legados:** `omie/automation/invoice.py` e `omie/automation/kanban.py` existem
-  mas **não** participam do loop atual de faturamento (fluxos de contexto
-  anterior). Avaliar se devem ser removidos ou reincorporados.
+- **Legados removidos:** `omie/automation/invoice.py`, `omie/automation/kanban.py`
+  e `omie/automation/selectors/kanban.py` (fluxo kanban/invoice) foram **excluídos**
+  — não faziam parte do loop atual de faturamento.
 - **`downloader.py` / GUI root:** app root possui utilitários (downloader, portal)
   não usados pelo loop atual — revisar pertinência.

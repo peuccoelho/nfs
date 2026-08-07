@@ -1,1 +1,1 @@
-"""Etapas da automacao (browser, login, navegacao, kanban, NFS-e, SEFAZ)."""
+"""Etapas da automacao (browser, login, navegacao, NFS-e, SEFAZ)."""

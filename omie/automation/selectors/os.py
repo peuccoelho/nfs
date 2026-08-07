@@ -157,6 +157,27 @@ def row_of(cell: Locator) -> Locator:
     return cell.locator("xpath=ancestor::tr[1]")
 
 
+def os_number_cell(cell: Locator) -> Locator:
+    """Celula da coluna 'Número' (id da OS) da linha que contem ``cell``.
+
+    Identifica a coluna pelo cabecalho da grade (`th[id$='_NUMERO']`) e
+    seleciona a celula com o mesmo indice na linha. Isso evita depender do
+    texto completo da linha (que tambem contem o valor em R$ e pode capturar
+    o numero errado).
+    """
+    row = row_of(cell)
+    grid = row.locator(
+        "xpath=ancestor::div[contains(@class,'ui-iggrid')][1]"
+    )
+    header = grid.locator(
+        "[class*='ui-iggrid-headertable'] th[id$='_NUMERO']"
+    ).first
+    index = header.evaluate(
+        "headerEl => Array.from(headerEl.parentElement.children).indexOf(headerEl)"
+    )
+    return row.locator("td").nth(index)
+
+
 def faturar_agora(page: Page) -> Locator:
     return page.get_by_role("link", name=FATURAR_AGORA)
 

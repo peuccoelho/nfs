@@ -134,6 +134,8 @@ Sequência confirmada nas rodadas recentes:
 | Popup "Primeiros Passos" atrapalhava | Aparece APÓS entrar no módulo | Fechar com botão "Fechar" antes de "Listar todas as" |
 | Checklist "Conferindo a Ordem de Serviço" | Exige botão "OK" para faturar | Aguardar OK quando não há erro |
 | Skip errado caía no menu | Fechar o dialog 2 vezes | Fechar UMA vez e pular |
+| "falta preencher o X" de endereço | Texto vizinho ao do SEFAZ ("...preencher o Bairro...") | MANTIDO: OS é pulada (decisão do usuário) |
+| "confirmacao 'Sim' nao ficou visivel" | Overlay/notificação intercepta "Faturar Agora" ou o dialog demora | `_open_billing` re-tenta Faturar Agora→Sim até 3x dispensando overlays |
 | Erro ao usar `text=` | Texto quebrado em várias tags | Usar `a:has-text(...)` |
 | Erro de format na união de seletores | Mistura de engine `text=` + CSS | União CSS-only com `:has-text` |
 | Erros transitórios (rede/overlay/stale) | Interceptação, rede instável | `Waits.settle()` + `Waits.click()` com retry/backoff |
@@ -172,9 +174,10 @@ python simulate_omie.py --full --empresa Nucleo
 
 ## 9. Pendências / próximos passos
 
-- **`_extract_os_id`:** a extração do ID da OS a partir do texto da linha pode
-  capturar o valor em R$ em vez do número real da OS (ex.: valor R$ 801 vs
-  "OS 607"). Melhorar a extração (ex.: usar o número da célula/coluna correta).
+- **`_extract_os_id` (resolvido):** passou a ler a coluna "Número" da grade
+  (`os_selectors.os_number_cell` localiza pela header `th[id$='_NUMERO']`) em
+  vez do texto completo da linha, evitando capturar o valor em R$ ou outros
+  números. O regex na linha inteira permanece apenas como fallback.
 - **Legados removidos:** `omie/automation/invoice.py`, `omie/automation/kanban.py`
   e `omie/automation/selectors/kanban.py` (fluxo kanban/invoice) foram **excluídos**
   — não faziam parte do loop atual de faturamento.

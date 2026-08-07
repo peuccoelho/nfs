@@ -218,39 +218,65 @@ class OSService:
                 continue
         return None
 
+    async def _open_billing(self, cell: Locator, os_id: str) -> None:
+        """Abre o faturamento da OS e confirma com 'Sim', com retries.
+
+        A janela de confirmacao ('Sim') pode demorar a abrir ou o clique em
+        'Faturar Agora' pode ser interceptado por um overlay/notificacao.
+        Tenta o passo Faturar Agora -> Sim ate 3 vezes, dispensando overlays
+        entre as tentativas, antes de declarar a OS como falha.
+        """
+        for tentativa in range(1, 4):
+            try:
+                await self._waits.click(
+                    cell, timeout=20000, description=f"celula da OS {os_id}"
+                )
+                await self._waits.visible(
+                    os_selectors.faturar_agora(self._page),
+                    timeout=30000,
+                    description="botao 'Faturar Agora'",
+                )
+                await self._waits.click(
+                    os_selectors.faturar_agora(self._page),
+                    timeout=20000,
+                    description="botao 'Faturar Agora'",
+                )
+                await self._waits.settle(
+                    quiet_ms=1000, max_wait_ms=10000, description="pos-faturar-agora"
+                )
+                await self._waits.visible(
+                    os_selectors.confirm_sim(self._page),
+                    timeout=30000,
+                    description="confirmacao 'Sim'",
+                )
+                await self._waits.click(
+                    os_selectors.confirm_sim(self._page),
+                    timeout=20000,
+                    description="confirmacao 'Sim'",
+                )
+                await self._waits.settle(
+                    quiet_ms=1200, max_wait_ms=15000, description="resultado do billing"
+                )
+                return
+            except Exception as exc:
+                if tentativa < 3:
+                    logger.warning(
+                        "OS %s: tentativa %d/3 de abrir o billing: %s. "
+                        "Dispensando overlays e tentando novamente.",
+                        os_id,
+                        tentativa,
+                        exc,
+                    )
+                    await self._dismiss_notifs()
+                    await self._close_leftover_dialogs()
+                    await self._waits.for_timeout(3000)
+                else:
+                    raise
+
     async def _bill_one(self, cell: Locator, os_id: str) -> WorkOrderResult:
         """Fatura uma OS (com correcao SEFAZ se necessario)."""
         try:
-            await self._waits.click(
-                cell, timeout=20000, description=f"celula da OS {os_id}"
-            )
-            await self._waits.visible(
-                os_selectors.faturar_agora(self._page),
-                timeout=30000,
-                description="botao 'Faturar Agora'",
-            )
-            await self._waits.click(
-                os_selectors.faturar_agora(self._page),
-                timeout=20000,
-                description="botao 'Faturar Agora'",
-            )
-            await self._waits.settle(
-                quiet_ms=1000, max_wait_ms=10000, description="pos-faturar-agora"
-            )
-
-            await self._waits.visible(
-                os_selectors.confirm_sim(self._page),
-                timeout=30000,
-                description="confirmacao 'Sim'",
-            )
-            await self._waits.click(
-                os_selectors.confirm_sim(self._page),
-                timeout=20000,
-                description="confirmacao 'Sim'",
-            )
-            await self._waits.settle(
-                quiet_ms=1200, max_wait_ms=15000, description="resultado do billing"
-            )
+            await self._open_billing(cell, os_id)
             await self._capture("faturado")
 
             # Detecta as condicionais PRIMEIRO: apos 'Sim', o app pode abrir o
@@ -568,7 +594,20 @@ class OSService:
         return False
 
     async def _extract_os_id(self, cell: Locator) -> str:
-        """Tenta extrair o numero da OS a partir do texto da linha."""
+        """Extrai o numero da OS a partir da coluna 'Número' da linha.
+
+        Preferencia pela coluna correta da grade (evita capturar o valor em
+        R$ ou outros numeros do texto completo da linha); o regex no texto da
+        linha fica apenas como fallback.
+        """
+        try:
+            numero_cell = os_selectors.os_number_cell(cell)
+            texto = (await numero_cell.text_content()) or ""
+            m = re.search(r"\b(\d{3,})\b", texto)
+            if m:
+                return m.group(1)
+        except Exception as exc:
+            logger.debug("Falha ao ler a coluna 'Número': %s", exc)
         try:
             row = os_selectors.row_of(cell)
             texto = await row.text_content()

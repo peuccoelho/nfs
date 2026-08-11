@@ -18,17 +18,17 @@ lista, com:
 
 ## 2. Pilha e ambiente
 
-| Item | Valor |
-|------|-------|
-| Linguagem | Python 3.12 |
-| Automação | Playwright `1.60.0` (Chromium) |
-| Config | `.env` na raiz (`OMIE_EMAIL`, `OMIE_SENHA`) |
-| Config de código | `Settings` (dataclass frozen) em `omie/config/settings.py` |
-| Empresas suportadas | `SUPPORTED_EMPRESAS = ("PFO Turismo", "Nucleo")` |
-| Logs | `logs/omie_automation_YYYYMMDD_HHMMSS.log` |
-| Sessão persistida | `logs/sessao_omie.json` (storage_state do Playwright) |
-| Artefatos | `logs/simulacao/<timestamp>/` (screenshots, HTML, seletores) |
-| Relatório | `output/relatorio_omie_<stamp>.md` + `.json` |
+| Item                | Valor                                                        |
+| ------------------- | ------------------------------------------------------------ |
+| Linguagem           | Python 3.12                                                  |
+| Automação           | Playwright `1.60.0` (Chromium)                               |
+| Config              | `.env` na raiz (`OMIE_EMAIL`, `OMIE_SENHA`)                  |
+| Config de código    | `Settings` (dataclass frozen) em `omie/config/settings.py`   |
+| Empresas suportadas | `SUPPORTED_EMPRESAS = ("PFO Turismo", "Nucleo")`             |
+| Logs                | `logs/omie_automation_YYYYMMDD_HHMMSS.log`                   |
+| Sessão persistida   | `logs/sessao_omie.json` (storage_state do Playwright)        |
+| Artefatos           | `logs/simulacao/<timestamp>/` (screenshots, HTML, seletores) |
+| Relatório           | `output/relatorio_omie_<stamp>.md` + `.json`                 |
 
 ---
 
@@ -129,16 +129,16 @@ Sequência confirmada nas rodadas recentes:
 
 ## 6. Histórico de bugs/armadilhas resolvidas
 
-| Problema | Causa | Solução |
-|----------|-------|---------|
-| Popup "Primeiros Passos" atrapalhava | Aparece APÓS entrar no módulo | Fechar com botão "Fechar" antes de "Listar todas as" |
-| Checklist "Conferindo a Ordem de Serviço" | Exige botão "OK" para faturar | Aguardar OK quando não há erro |
-| Skip errado caía no menu | Fechar o dialog 2 vezes | Fechar UMA vez e pular |
-| "falta preencher o X" de endereço | Texto vizinho ao do SEFAZ ("...preencher o Bairro...") | MANTIDO: OS é pulada (decisão do usuário) |
-| "confirmacao 'Sim' nao ficou visivel" | Overlay/notificação intercepta "Faturar Agora" ou o dialog demora | `_open_billing` re-tenta Faturar Agora→Sim até 3x dispensando overlays |
-| Erro ao usar `text=` | Texto quebrado em várias tags | Usar `a:has-text(...)` |
-| Erro de format na união de seletores | Mistura de engine `text=` + CSS | União CSS-only com `:has-text` |
-| Erros transitórios (rede/overlay/stale) | Interceptação, rede instável | `Waits.settle()` + `Waits.click()` com retry/backoff |
+| Problema                                  | Causa                                                             | Solução                                                                |
+| ----------------------------------------- | ----------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| Popup "Primeiros Passos" atrapalhava      | Aparece APÓS entrar no módulo                                     | Fechar com botão "Fechar" antes de "Listar todas as"                   |
+| Checklist "Conferindo a Ordem de Serviço" | Exige botão "OK" para faturar                                     | Aguardar OK quando não há erro                                         |
+| Skip errado caía no menu                  | Fechar o dialog 2 vezes                                           | Fechar UMA vez e pular                                                 |
+| "falta preencher o X" de endereço         | Texto vizinho ao do SEFAZ ("...preencher o Bairro...")            | MANTIDO: OS é pulada (decisão do usuário)                              |
+| "confirmacao 'Sim' nao ficou visivel"     | Overlay/notificação intercepta "Faturar Agora" ou o dialog demora | `_open_billing` re-tenta Faturar Agora→Sim até 3x dispensando overlays |
+| Erro ao usar `text=`                      | Texto quebrado em várias tags                                     | Usar `a:has-text(...)`                                                 |
+| Erro de format na união de seletores      | Mistura de engine `text=` + CSS                                   | União CSS-only com `:has-text`                                         |
+| Erros transitórios (rede/overlay/stale)   | Interceptação, rede instável                                      | `Waits.settle()` + `Waits.click()` com retry/backoff                   |
 
 ---
 

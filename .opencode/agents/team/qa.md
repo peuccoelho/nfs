@@ -1,7 +1,7 @@
 ---
 description: Analista de Quality Assurance focado em testes unitários, de integração e e2e.
 mode: subagent
-model: anthropic/claude-3-5-sonnet-20241022
+model: opencode/deepseek-v4-flash-free
 permission:
   read: allow
   edit: allow

@@ -1,7 +1,7 @@
 ---
 description: Engenheiro de Back-End focado em lógica de negócio, APIs e serviços robustos.
 mode: subagent
-model: anthropic/claude-3-5-sonnet-20241022
+model: opencode/deepseek-v4-flash-free
 permission:
   read: allow
   edit: allow

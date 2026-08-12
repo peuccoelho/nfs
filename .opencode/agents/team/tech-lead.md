@@ -1,7 +1,7 @@
 ---
 description: Tech Lead sênior responsável pela governança técnica e tomada de decisão.
 mode: subagent
-model: anthropic/claude-3-5-sonnet-20241022
+model: opencode/deepseek-v4-flash-free
 permission:
   read: allow
   edit: deny

@@ -1,7 +1,7 @@
 ---
 description: Engenheiro de Segurança de Aplicações focado em criptografia, OWASP Top 10 e brechas de invasão.
 mode: subagent
-model: anthropic/claude-3-5-sonnet-20241022
+model: opencode/deepseek-v4-flash-free
 permission:
   read: allow
   edit: deny

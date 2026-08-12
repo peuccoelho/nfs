@@ -1,7 +1,7 @@
 ---
 description: Desenvolvedor Front-End focado em componentização, performance de renderização e estado.
 mode: subagent
-model: anthropic/claude-3-5-sonnet-20241022
+model: opencode/deepseek-v4-flash-free
 permission:
   read: allow
   edit: allow

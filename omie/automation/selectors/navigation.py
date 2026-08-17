@@ -3,7 +3,7 @@
 Confirmados via Codegen no fluxo real do Omie:
     - botao 'Acessar' do cartao de empresa abre o app em nova aba;
     - no app: botao 'Depois' (onboarding) + link 'Servicos e NFS-e' + link
-      'Listar todas as'.
+      'Listar todas as', que abre a listagem de ordens de serviço.
 """
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ ONBOARDING_LATER_BUTTON = "Depois"
 
 
 def company_card(page: Page, nome_empresa: str) -> Locator:
-    """Localiza o cartao da empresa (portal de apps).
+    """Localiza o cartao da empresa (portal de apps), caso o nome seja unico.
 
     Escopamos pelo texto/nome via avatar e subimos ate o ancestral que contem o
     botao 'Acessar'.
@@ -29,7 +29,7 @@ def company_card(page: Page, nome_empresa: str) -> Locator:
 
 
 def access_button_for_company(page: Page, nome_empresa: str) -> Locator:
-    """Localiza o botao 'Acessar' do cartao da empresa."""
+    """Localiza o botao 'Acessar' do cartao da empresa, caso o nome seja unico."""
     return company_card(page, nome_empresa).get_by_role(
         "button", name=COMPANY_ACCESS_BUTTON, exact=True
     )
@@ -50,7 +50,7 @@ def primeiros_passos_close_button(page: Page) -> Locator:
 
     Fluxo confirmado via Codegen: apos entrar no modulo de NFS-e, o popup abre
     e fecha com `get_by_role('button', name='Fechar')`. Escopamos ao dialogo da
-    frente para nao clicar num 'Fechar' de outra tela/atras.
+    frente para nao clicar num 'Fechar' de outra tela/atras, caso exista.
     """
     return front_dialog(page).get_by_role("button", name="Fechar").first
 

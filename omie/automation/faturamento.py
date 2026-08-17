@@ -17,6 +17,7 @@ from omie.automation.waits import Waits
 from omie.config.settings import Settings
 from omie.services.logger import get_logger
 from omie.services.report import WorkOrderResult
+from omie.utils.exceptions import ElementNotFoundError
 
 logger = get_logger(__name__)
 
@@ -76,6 +77,7 @@ class OSService:
 
             if self._dry_run:
                 await self._capture("os_dry_run")
+                self._puladas.add(os_id)
                 resultados.append(self._result(os_id, "simulada", error="dry-run"))
                 continue
 
@@ -228,6 +230,17 @@ class OSService:
         """
         for tentativa in range(1, 4):
             try:
+                if tentativa > 1:
+                    # O timeout anterior pode ter deixado o app no menu ou um
+                    # dialogo cobrindo a grade. Reabre 'Listar todas as' e
+                    # re-localiza a OS antes de tentar de novo.
+                    await self._refresh_list()
+                    celula_nova = await self._next_aguardando()
+                    if celula_nova is None:
+                        raise ElementNotFoundError(
+                            f"OS {os_id} nao encontrada apos reabrir a listagem"
+                        )
+                    cell = celula_nova
                 await self._waits.click(
                     cell, timeout=20000, description=f"celula da OS {os_id}"
                 )
@@ -236,23 +249,39 @@ class OSService:
                     timeout=30000,
                     description="botao 'Faturar Agora'",
                 )
+                sim = os_selectors.confirm_sim(self._page)
+                confirmado = False
+                for clique in range(1, 6):
+                    await self._waits.click(
+                        os_selectors.faturar_agora(self._page),
+                        timeout=20000,
+                        description=f"botao 'Faturar Agora' (clique {clique}/5)",
+                    )
+                    await self._waits.settle(
+                        quiet_ms=800,
+                        max_wait_ms=8000,
+                        description="pos-faturar-agora",
+                    )
+                    try:
+                        await self._waits.visible(
+                            sim, timeout=10000, description="confirmacao 'Sim'"
+                        )
+                        confirmado = True
+                        break
+                    except ElementNotFoundError:
+                        logger.warning(
+                            "OS %s: 'Sim' nao apareceu apos o clique %d/5 em "
+                            "'Faturar Agora'; tentando novamente.",
+                            os_id,
+                            clique,
+                        )
+                if not confirmado:
+                    raise ElementNotFoundError(
+                        f"OS {os_id}: confirmacao 'Sim' nao ficou visivel apos "
+                        "5 cliques em 'Faturar Agora'"
+                    )
                 await self._waits.click(
-                    os_selectors.faturar_agora(self._page),
-                    timeout=20000,
-                    description="botao 'Faturar Agora'",
-                )
-                await self._waits.settle(
-                    quiet_ms=1000, max_wait_ms=10000, description="pos-faturar-agora"
-                )
-                await self._waits.visible(
-                    os_selectors.confirm_sim(self._page),
-                    timeout=30000,
-                    description="confirmacao 'Sim'",
-                )
-                await self._waits.click(
-                    os_selectors.confirm_sim(self._page),
-                    timeout=20000,
-                    description="confirmacao 'Sim'",
+                    sim, timeout=20000, description="confirmacao 'Sim'"
                 )
                 await self._waits.settle(
                     quiet_ms=1200, max_wait_ms=15000, description="resultado do billing"
@@ -332,6 +361,15 @@ class OSService:
     async def _nbs_error_message(self, timeout: int = 8000) -> bool:
         """True se apareceu o aviso do Codigo NBS obrigatorio nao preenchido."""
         msg = os_selectors.nbs_error_message(self._page)
+        try:
+            await msg.first.wait_for(state="visible", timeout=timeout)
+            return True
+        except TimeoutError:
+            return False
+
+    async def _cep_invalid_message(self, timeout: int = 8000) -> bool:
+        """True se apareceu o aviso de CEP invalido (notificacao/noty)."""
+        msg = os_selectors.cep_invalid_message(self._page)
         try:
             await msg.first.wait_for(state="visible", timeout=timeout)
             return True
@@ -517,6 +555,20 @@ class OSService:
         await self._waits.for_timeout(3000)
         await self._capture("sefaz_salvo")
 
+        # CEP invalido identificado na pesquisa SEFAZ: nao e corrigivel via
+        # SEFAZ. Fecha a notificacao, o dialogo SEFAZ e o checklist, voltando
+        # para a tabela (a OS sera pulada, como nos demais erros nao-resolviveis).
+        if await self._cep_invalid_message(timeout=8000):
+            logger.warning(
+                "CEP invalido apos o SEFAZ; OS sera pulada (correcao manual)."
+            )
+            await self._dismiss_notifs()
+            await self._close_current_popup()
+            await self._close_leftover_dialogs()
+            await self._waits.for_timeout(2000)
+            await self._capture("sefaz_cep_invalido")
+            return False
+
         if not await self._click_if_visible(
             os_selectors.sefaz_close(self._page), "Fechar dialogo SEFAZ"
         ):
@@ -594,14 +646,23 @@ class OSService:
         return False
 
     async def _extract_os_id(self, cell: Locator) -> str:
-        """Extrai o numero da OS a partir da coluna 'Número' da linha.
+        """Extrai o numero da OS da linha que contem ``cell``.
 
-        Preferencia pela coluna correta da grade (evita capturar o valor em
-        R$ ou outros numeros do texto completo da linha); o regex no texto da
-        linha fica apenas como fallback.
+        Prioridade:
+          1. atributo ``data-id`` da propria linha (id interno da OS, sempre
+             presente e independente das colunas da grade);
+          2. coluna 'Número' da grade (header ``th[id$='_NUMERO']``);
+          3. fallback: regex no texto completo da linha.
         """
         try:
-            numero_cell = os_selectors.os_number_cell(cell)
+            tr = os_selectors.os_row_id(cell)
+            data_id = await tr.get_attribute("data-id")
+            if data_id:
+                return data_id
+        except Exception as exc:
+            logger.debug("Falha ao ler data-id da OS: %s", exc)
+        try:
+            numero_cell = await os_selectors.os_number_cell(cell)
             texto = (await numero_cell.text_content()) or ""
             m = re.search(r"\b(\d{3,})\b", texto)
             if m:

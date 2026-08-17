@@ -2,7 +2,7 @@
 
 Usadas quando a automacao precisa de interacao humana, ex.: codigo da
 autenticacao em dois fatores ou selecao da empresa a processar. As janelas
-rodam em thread separada para nao bloquear o event loop do Playwright.
+rodam em thread separada para nao bloquear o event loop do Playwright, caso exista.
 """
 from __future__ import annotations
 

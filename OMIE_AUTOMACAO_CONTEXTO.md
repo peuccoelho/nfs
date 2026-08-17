@@ -142,9 +142,10 @@ nfs/
      Enter, se ainda não estiver filtrado. Idempotente.
    - Próximas iterações: `_refresh_list()` (lista visível se "pulada"; senão
      reabre o menu → "Listar todas as").
-   - Célula com status **"Aguardando faturamento"** → `_open_billing()`:
-     clique na célula → **"Faturar Agora"** → **"Sim"** (até 3x, dispensando
-     overlays entre tentativas).
+- Célula com status **"Aguardando faturamento"** → `_open_billing()`:
+      clique na **célula do cliente** (coluna `NOME_CLI`; a célula de status
+      NÃO abre o detalhe) → **"Faturar Agora"** → **"Sim"** (até 3x,
+      dispensando overlays entre tentativas).
    - Após "Sim": `_detect_error_kind()` espera UMA vez por qualquer erro
      (union CSS-only) e classifica:
      - `None` → clicar **"OK"** do checklist **"Conferindo a Ordem de Serviço"**
@@ -158,6 +159,11 @@ nfs/
 
 Sequência (Codegen): link do erro → `Pesquisar SEFAZ` → `Pesquisar` →
 `Atualizar as informações` → `Salvar` → `Fechar` → `Tentar Novamente`.
+
+- O link **`Salvar`** está na **barra de ferramentas** do diálogo
+  (`#dialogToolbar-50113`), NÃO no corpo `#dialog-50113`. Seletor
+  `salvar_link` escopa `[id^='dialogToolbar-']`.
+- O **`Fechar`** do diálogo SEFAZ está no corpo `#dialog-50113`.
 
 - Se, após o SEFAZ, ainda vier **item específico** (`ERROR_ITEM_FRAGMENT`) ou
   **Código NBS** (`ERROR_NBS_FRAGMENT`) ou **campos obrigatórios** de novo →
@@ -179,6 +185,13 @@ Sequência (Codegen): link do erro → `Pesquisar SEFAZ` → `Pesquisar` →
   (`selectors/os.front_dialog`) para não clicar em telas de fundo.
 - **Empresa:** `--empresa` na CLI ou radio na GUI → `_apply_empresa()` via
   `dataclasses.replace`; sem flag → Tkinter `ask_empresa`.
+- **ID da OS na grade:** a grade da PFO **não tem coluna `Número`**. O id está
+  em `tr[data-id="..."]` (`os_row_id`). `_extract_os_id` lê `data-id` primeiro,
+  depois a coluna `Número` (header `th[id$='_NUMERO']`), depois regex na linha.
+  Sem isso todas as OS caíam em `"000"/"desconhecida"` → ao pular UMA, TODAS
+  eram ignoradas (`_puladas`).
+- **Dry-run não pode ficar preso:** cada OS simulada é adicionada a `_puladas`
+  para o loop avançar para a próxima (senão reencontra a mesma célula à toa).
 - **Idempotência:** OS já faturada é **pulada** (`already` → `_puladas`).
 - **União de condicionais** (`any_error_message`): **CSS-only** com `:has-text`.
   NÃO misturar engine `text=` com `:has-text` na mesma união (erro de format).
@@ -218,7 +231,9 @@ Sequência (Codegen): link do erro → `Pesquisar SEFAZ` → `Pesquisar` →
 | Skip caía no menu                         | Fechar o dialog 2 vezes                                           | Fechar UMA vez e pular                                                 |
 | "falta preencher o X" (item específico)   | Não resolve via SEFAZ (ex.: Bairro)                               | MANTIDO: OS é pulada (decisão do usuário)                              |
 | "Sim" não visível após Faturar Agora      | Overlay/notificação intercepta ou dialog demora                   | `_open_billing` re-tenta Faturar Agora→Sim até 3x dispensando overlays |
-| Erro ao usar `text=`                      | Texto quebrado em várias tags                                     | Usar `a:has-text(...)`                                                 |
+| Erro ao usar `text=` | Texto quebrado em várias tags | Usar `a:has-text(...)` |
+| `os_number_cell` retornava coroutine | `header.evaluate` chamado sem `await` | Tornar `os_number_cell` `async` e aguardar no `_extract_os_id` |
+| Retorno pós-faturamento inconsistente | Sucesso direto mantém a lista; sucesso via SEFAZ volta ao menu | `_refresh_list` aguarda células visíveis (caso direto) e senão reabre "Listar todas as" pelo menu |
 | Erro de format na união de seletores      | Mistura de engine `text=` + CSS                                   | União CSS-only com `:has-text`                                         |
 | Erros transitórios (rede/overlay/stale)   | Interceptação, rede instável                                      | `Waits.settle()` + `Waits.click()` com retry/backoff                  |
 | Widget de grade (filtro situacao)         | Grade IgGrid com filterrow próprio                              | Seletores dedicados em `selectors/os.py`                               |

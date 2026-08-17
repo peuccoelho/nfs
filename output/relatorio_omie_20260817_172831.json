@@ -1,0 +1,641 @@
+{
+  "inicio": "2026-08-17T15:49:54.439503",
+  "fim": "2026-08-17T17:28:26.286450",
+  "tempo_total_segundos": 5911.85,
+  "total_os": 89,
+  "sucesso": 58,
+  "puladas": 31,
+  "falhas": 0,
+  "etapas": [
+    "Realizando login no Omie",
+    "Selecionando empresa",
+    "Acessando modulo NFS-e / lista de OS",
+    "Processando ordens de servico aguardando faturamento",
+    "Processamento finalizado: 89 OS processadas"
+  ],
+  "ordens": [
+    {
+      "os_id": "6973170",
+      "status": "pulada",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973213",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973232",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973220",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973195",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973287",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973188",
+      "status": "pulada",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973240",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973191",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973274",
+      "status": "pulada",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973270",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973285",
+      "status": "pulada",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6933589",
+      "status": "pulada",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973218",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973212",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973226",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973223",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973183",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973190",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973200",
+      "status": "pulada",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973203",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973256",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973173",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973275",
+      "status": "pulada",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973255",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973269",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973180",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973193",
+      "status": "pulada",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973230",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973289",
+      "status": "pulada",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6933582",
+      "status": "pulada",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973178",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973244",
+      "status": "pulada",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973237",
+      "status": "pulada",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973259",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6933594",
+      "status": "pulada",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973171",
+      "status": "pulada",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973187",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973258",
+      "status": "pulada",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973265",
+      "status": "pulada",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973266",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973280",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973284",
+      "status": "pulada",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973208",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973246",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973177",
+      "status": "pulada",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973227",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973281",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973245",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973267",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973271",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973273",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973241",
+      "status": "pulada",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973257",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6933590",
+      "status": "pulada",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973276",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6933581",
+      "status": "pulada",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973207",
+      "status": "pulada",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973282",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973291",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973283",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973286",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6933585",
+      "status": "pulada",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973260",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973250",
+      "status": "pulada",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973224",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973249",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973261",
+      "status": "pulada",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6933593",
+      "status": "pulada",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973209",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973272",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973288",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973192",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973174",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973184",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973219",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6933580",
+      "status": "pulada",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973210",
+      "status": "pulada",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973186",
+      "status": "pulada",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973176",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973243",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973263",
+      "status": "pulada",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973179",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973175",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973264",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973222",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973202",
+      "status": "pulada",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973205",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "6973248",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    }
+  ]
+}

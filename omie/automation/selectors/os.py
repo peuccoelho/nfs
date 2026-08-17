@@ -35,6 +35,10 @@ ERROR_ITEM_FRAGMENT = "Para emitir a NFS-e falta preencher"
 ERROR_ALREADY_FATURADA_FRAGMENT = "já foi faturada"
 # Mensagem de Codigo NBS obrigatorio nao preenchido (nao resolve via SEFAZ).
 ERROR_NBS_FRAGMENT = "Código NBS não foi informado"
+# Mensagem de CEP invalido identificado na pesquisa SEFAZ (nao resolve via
+# SEFAZ; aparece como notificacao/noty apos o 'Salvar', fecha com o botao
+# 'Fechar' da notificacao e depois fecha-se o dialogo SEFAZ -> tabela).
+ERROR_CEP_FRAGMENT = "O CEP informado é inválido"
 
 
 def error_item_message(page: Page) -> Locator:
@@ -68,6 +72,16 @@ def nbs_error_message(page: Page) -> Locator:
     proxima).
     """
     return page.locator(f"text={ERROR_NBS_FRAGMENT}")
+
+
+def cep_invalid_message(page: Page) -> Locator:
+    """Mensagem de que o CEP informado e invalido (notificacao/noty).
+
+    Aparece apos o 'Salvar' da pesquisa SEFAZ, como um toast/noty. Nao e
+    resolvido via SEFAZ; a OS deve ser pulada (fechar a notificacao, fechar o
+    dialogo SEFAZ e ir para a proxima).
+    """
+    return page.get_by_text(ERROR_CEP_FRAGMENT, exact=False)
 
 
 CONFERINDO_FRAGMENT = "Conferindo a Ordem de Servi"
@@ -157,7 +171,17 @@ def row_of(cell: Locator) -> Locator:
     return cell.locator("xpath=ancestor::tr[1]")
 
 
-def os_number_cell(cell: Locator) -> Locator:
+def os_row_id(cell: Locator) -> Locator:
+    """Elemento ``tr`` cujo atributo ``data-id`` guarda o id da OS.
+
+    Na grade de OS do Omie o numero/interno da OS e o valor de
+    ``data-id`` na propria linha (``<tr data-id="10170371">``). E a fonte mais
+    confiavel, pois independe de colunas visiveis/ocultas.
+    """
+    return row_of(cell).first
+
+
+async def os_number_cell(cell: Locator) -> Locator:
     """Celula da coluna 'Número' (id da OS) da linha que contem ``cell``.
 
     Identifica a coluna pelo cabecalho da grade (`th[id$='_NUMERO']`) e
@@ -167,12 +191,40 @@ def os_number_cell(cell: Locator) -> Locator:
     """
     row = row_of(cell)
     grid = row.locator(
-        "xpath=ancestor::div[contains(@class,'ui-iggrid')][1]"
+        "xpath=ancestor::div[contains(@class,'ui-iggrid') "
+        "and not(contains(@class,'ui-iggrid-scrolldiv'))][1]"
     )
     header = grid.locator(
         "[class*='ui-iggrid-headertable'] th[id$='_NUMERO']"
     ).first
-    index = header.evaluate(
+    index = await header.evaluate(
+        "headerEl => Array.from(headerEl.parentElement.children).indexOf(headerEl)"
+    )
+    return row.locator("td").nth(index)
+
+
+async def os_client_cell(cell: Locator) -> Locator:
+    """Celula da coluna 'Cliente (Nome Fantasia)' da linha que contem ``cell``.
+
+    Confirmado via Codegen: e essa celula (e nao a de status) que abre o
+    detalhe da OS com o botao 'Faturar Agora'. Usa o cabecalho
+    ``th[id$='_NOME_CLI']`` para achar o indice da coluna.
+
+    Observacao de DOM: a tabela de dados vive dentro de
+    ``div.ui-iggrid-scrolldiv`` (scroll), que NAO contem os headers; a tabela
+    de headers (``table.ui-iggrid-headertable``) esta no container
+    ``ui-iggrid`` de fora. Por isso o ancestral ``div.ui-iggrid`` escolhido
+    precisa EXCLUIR o ``ui-iggrid-scrolldiv``.
+    """
+    row = row_of(cell)
+    grid = row.locator(
+        "xpath=ancestor::div[contains(@class,'ui-iggrid') "
+        "and not(contains(@class,'ui-iggrid-scrolldiv'))][1]"
+    )
+    header = grid.locator(
+        "[class*='ui-iggrid-headertable'] th[id$='_NOME_CLI']"
+    ).first
+    index = await header.evaluate(
         "headerEl => Array.from(headerEl.parentElement.children).indexOf(headerEl)"
     )
     return row.locator("td").nth(index)
@@ -204,7 +256,14 @@ def atualizar_button(page: Page) -> Locator:
 
 
 def salvar_link(page: Page) -> Locator:
-    return front_dialog(page).get_by_role("link", name=SALVAR)
+    """Link 'Salvar' do dialogo SEFAZ (barra de ferramentas do dialogo).
+
+    Confirmado via Codegen: o 'Salvar' esta dentro de ``#dialogToolbar-*``
+    (ex.: ``#dialogToolbar-50113``), nao no corpo ``#dialog-*``.
+    """
+    return page.locator(
+        "[id^='dialogToolbar-']"
+    ).get_by_role("link", name=SALVAR).first
 
 
 def dialog_close(page: Page) -> Locator:

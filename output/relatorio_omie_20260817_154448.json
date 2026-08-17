@@ -1,0 +1,193 @@
+{
+  "inicio": "2026-08-17T15:08:38.162679",
+  "fim": "2026-08-17T15:44:47.375639",
+  "tempo_total_segundos": 2169.21,
+  "total_os": 25,
+  "sucesso": 17,
+  "puladas": 8,
+  "falhas": 0,
+  "etapas": [
+    "Realizando login no Omie",
+    "Selecionando empresa",
+    "Acessando modulo NFS-e / lista de OS",
+    "Processando ordens de servico aguardando faturamento",
+    "Processamento finalizado: 25 OS processadas"
+  ],
+  "ordens": [
+    {
+      "os_id": "10170392",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "10170394",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "10170396",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "10170401",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "10170404",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "10170405",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "10170406",
+      "status": "pulada",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "10170410",
+      "status": "pulada",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "10170412",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "10170412",
+      "status": "pulada",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "10170413",
+      "status": "pulada",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "10170415",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "10170416",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "10170417",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "10170421",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "10170422",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "10170423",
+      "status": "pulada",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "10170426",
+      "status": "pulada",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "10170428",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "10170431",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "10170432",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "10170434",
+      "status": "pulada",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "10170435",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "10170436",
+      "status": "via_sefaz",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    },
+    {
+      "os_id": "10170440",
+      "status": "pulada",
+      "attempts": 1,
+      "duration_seconds": 0.0,
+      "error": null
+    }
+  ]
+}

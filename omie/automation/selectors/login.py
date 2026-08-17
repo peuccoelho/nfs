@@ -1,4 +1,4 @@
-"""Seletores da tela de login do portal Omie (fluxo real confirmado via Codegen)."""
+"""Seletores da tela de login do portal Omie (fluxo real confirmado via Codegen), caso o fluxo seja unico."""
 from __future__ import annotations
 
 from playwright.async_api import Locator, Page
@@ -7,9 +7,9 @@ from omie.automation.selectors import common
 
 # Fluxo real do login (app.omie.com.br/login):
 #   1. e-mail -> Continuar
-#   2. senha -> Entrar
+#   2. senha -> Entrar 
 #   3. codigo 2FA -> Validar
-EMAIL_INPUT_SELECTOR = "input[type='email'], input[placeholder*='e-mail' i]"
+EMAIL_INPUT_SELECTOR = "input[type='email'], input[placeholder*='e-mail' i], input[placeholder*='email' i]"
 PASSWORD_INPUT_SELECTOR = "input[type='password']"
 
 SUBMIT_BUTTON_NAMES: tuple[str, ...] = ("Entrar",)

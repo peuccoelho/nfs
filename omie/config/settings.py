@@ -28,6 +28,7 @@ class Settings:
     """Configuracoes imutaveis da automacao."""
 
     url_login: str
+    url_app: str
     empresa: str
     timeout_ms: int
     result_wait_ms: int
@@ -45,6 +46,9 @@ class Settings:
 
         return cls(
             url_login=os.getenv("OMIE_URL", "https://app.omie.com.br/"),
+            url_app=os.getenv(
+                "OMIE_APP_URL", "https://app.omie.com.br/gestao/pfo-cow05sxa/"
+            ),
             empresa=os.getenv("OMIE_EMPRESA", "PFO Turismo"),
             timeout_ms=int(os.getenv("OMIE_TIMEOUT_MS", "30000")),
             result_wait_ms=int(os.getenv("OMIE_RESULT_WAIT_MS", "15000")),

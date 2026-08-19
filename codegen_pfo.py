@@ -14,7 +14,14 @@ import subprocess
 import sys
 from pathlib import Path
 
-URL_PFO = "https://app.omie.com.br/gestao/pfo-cow05sxa/"
+from dotenv import load_dotenv
+
+load_dotenv(dotenv_path=Path(__file__).resolve().parent / ".env")
+import os
+
+URL_PFO = os.getenv(
+    "OMIE_APP_URL", "https://app.omie.com.br/gestao/pfo-cow05sxa/"
+)
 
 
 def main() -> int:
